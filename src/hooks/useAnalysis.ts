@@ -92,18 +92,27 @@ export function useAnalysis() {
       audioRef.current = audio;
 
       audio.onended = () => {
+        console.log("Audio playback ended");
         setIsPlaying(false);
+        // Clean up blob URL
+        if ((audio as any)._blobUrl) {
+          URL.revokeObjectURL((audio as any)._blobUrl);
+        }
         audioRef.current = null;
       };
 
-      audio.onerror = () => {
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e);
         setIsPlaying(false);
+        if ((audio as any)._blobUrl) {
+          URL.revokeObjectURL((audio as any)._blobUrl);
+        }
         audioRef.current = null;
       };
     } catch (err) {
       console.error("Voice synthesis error:", err);
       setIsPlaying(false);
-      setError("Failed to play audio. Check your ElevenLabs API key.");
+      setError(err instanceof Error ? err.message : "Failed to play audio. Check your ElevenLabs API key.");
     }
   }, [result, isPlaying]);
 
