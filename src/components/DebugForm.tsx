@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { Code, Server, Laptop, Sparkles } from "lucide-react";
+import { Code, Server, Laptop, Sparkles, Zap } from "lucide-react";
 import { useState } from "react";
 
-console.log("DebugForm component rendered");
 interface DebugFormProps {
   onSubmit: (data: {
     errorCode: string;
@@ -19,16 +18,76 @@ const difficultyLevels = [
   { id: "intern", label: "Intern who just mass-applied", emoji: "💀" },
 ];
 
+// Demo examples for quick testing - judges love this!
+const demoExamples = [
+  {
+    name: "🔥 Classic Node.js",
+    errorCode: `Error: Cannot find module 'dotenv'
+    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:933:15)
+    at Function.Module._load (node:internal/modules/cjs/loader:778:27)
+    at Module.require (node:internal/modules/cjs/loader:1005:19)
+    at require (node:internal/modules/cjs/helpers:102:18)
+    at Object.<anonymous> (/app/server.js:1:1)`,
+    localEnv: `NODE_ENV=development
+Node: v20.10.0
+OS: Windows 11
+Dependencies: installed via npm install
+.env: ✅ loaded`,
+    prodEnv: `NODE_ENV=production
+Node: v18.17.0
+OS: Linux (Docker Alpine)
+Dependencies: npm ci --production
+.env: ❌ missing from container`,
+  },
+  {
+    name: "🐍 Python Drama",
+    errorCode: `ModuleNotFoundError: No module named 'pandas'
+Traceback (most recent call last):
+  File "/app/main.py", line 2, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'`,
+    localEnv: `Python: 3.11.4
+pip packages: installed from requirements.txt
+Virtual env: ✅ activated
+OS: macOS 14.0`,
+    prodEnv: `Python: 3.9.7
+pip packages: ???
+Virtual env: system python
+OS: AWS Lambda`,
+  },
+  {
+    name: "⚛️ React Build Fail",
+    errorCode: `TypeError: Cannot read properties of undefined (reading 'map')
+    at ProductList (webpack://app/./src/components/ProductList.jsx:15:23)
+    at renderWithHooks (webpack://app/./node_modules/react-dom/cjs/react-dom.development.js:14985:18)
+    at mountIndeterminateComponent (webpack://app/./node_modules/react-dom/cjs/react-dom.development.js:17811:13)`,
+    localEnv: `React: 18.2.0
+API: localhost:3001 (mock data)
+Data: Always returns array
+Browser: Chrome 120`,
+    prodEnv: `React: 18.2.0
+API: api.production.com
+Data: Returns null on empty
+CDN: Cloudflare`,
+  },
+];
+
 const DebugForm = ({ onSubmit, isLoading }: DebugFormProps) => {
   const [errorCode, setErrorCode] = useState("");
   const [localEnv, setLocalEnv] = useState("");
   const [prodEnv, setProdEnv] = useState("");
   const [difficulty, setDifficulty] = useState("junior");
 
+  const loadExample = (example: typeof demoExamples[0]) => {
+    setErrorCode(example.errorCode);
+    setLocalEnv(example.localEnv);
+    setProdEnv(example.prodEnv);
+  };
+
     const handleSubmit = (e: React.FormEvent) => {
-    console.log("handleSubmit called"); // ADD THIS
+    console.log("handleSubmit called");
     e.preventDefault();
-    console.log("Form data:", { errorCode, localEnv, prodEnv, difficulty }); // ADD THIS
+    console.log("Form data:", { errorCode, localEnv, prodEnv, difficulty });
     onSubmit({ errorCode, localEnv, prodEnv, difficulty });
   };
 
@@ -40,6 +99,26 @@ const DebugForm = ({ onSubmit, isLoading }: DebugFormProps) => {
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      {/* Quick Demo Examples */}
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
+          <Zap className="w-4 h-4 text-yellow-500" />
+          Quick Demo Examples
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {demoExamples.map((example) => (
+            <button
+              key={example.name}
+              type="button"
+              onClick={() => loadExample(example)}
+              className="px-3 py-1.5 rounded-lg bg-secondary/50 hover:bg-primary/20 border border-border hover:border-primary/50 font-mono text-xs transition-all"
+            >
+              {example.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Error/Code Input */}
       <div className="space-y-2">
         <label className="flex items-center gap-2 font-mono text-sm text-muted-foreground">
