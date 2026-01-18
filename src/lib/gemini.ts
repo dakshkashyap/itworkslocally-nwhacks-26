@@ -4,11 +4,26 @@ const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
 export type ExpertiseLevel = "junior" | "senior" | "intern";
 
+export type ErrorCategory = 
+  | "Environment" 
+  | "Dependencies" 
+  | "Configuration" 
+  | "API" 
+  | "Database" 
+  | "Authentication" 
+  | "Network" 
+  | "Memory" 
+  | "Permissions" 
+  | "Build";
+
 export interface AnalysisResult {
   whatWentWrong: string;
   howToFix: string[];
   preventionTips: string[];
   tldr: string;
+  category: ErrorCategory;
+  severity: "low" | "medium" | "high" | "critical";
+  estimatedFixTime: string;
 }
 
 export async function analyzeError(
@@ -48,7 +63,10 @@ Analyze this situation and respond in this EXACT JSON format (no markdown code b
   "whatWentWrong": "A clear explanation of the root cause in 2-4 sentences. Be specific about WHY it works locally but fails in prod.",
   "howToFix": ["Step 1: Specific actionable fix", "Step 2: Another step if needed", "Step 3: Verification step"],
   "preventionTips": ["Tip 1: How to prevent this in future", "Tip 2: Best practice", "Tip 3: Tool or process recommendation"],
-  "tldr": "One witty sentence summarizing the issue - make it memorable"
+  "tldr": "One witty sentence summarizing the issue - make it memorable",
+  "category": "One of: Environment, Dependencies, Configuration, API, Database, Authentication, Network, Memory, Permissions, Build",
+  "severity": "One of: low, medium, high, critical",
+  "estimatedFixTime": "Human readable time like '5 minutes', '30 minutes', '1-2 hours', etc."
 }
 
 Important:
@@ -89,6 +107,9 @@ Important:
       tldr:
         parsed.tldr ||
         "Something's different between your local setup and production.",
+      category: parsed.category || "Configuration",
+      severity: parsed.severity || "medium",
+      estimatedFixTime: parsed.estimatedFixTime || "15-30 minutes",
     };
   } catch (error) {
     console.error("Gemini API Error:", error);
