@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { AlertTriangle, CheckCircle, Lightbulb, Volume2, VolumeX, Copy, Check } from "lucide-react";
+import { AlertTriangle, CheckCircle, Lightbulb, Volume2, VolumeX, Copy, Check, Share2, MessageSquareQuote } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -7,6 +7,7 @@ interface AnalysisResult {
   whatWentWrong: string;
   howToFix: string[];
   preventionTips: string[];
+  tldr?: string;
 }
 
 interface ResultsSectionProps {
@@ -17,6 +18,7 @@ interface ResultsSectionProps {
 
 const ResultsSection = ({ results, onPlayAudio, isPlaying }: ResultsSectionProps) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
 
   if (!results) return null;
 
@@ -27,6 +29,36 @@ const ResultsSection = ({ results, onPlayAudio, isPlaying }: ResultsSectionProps
       description: "Solution copied successfully",
     });
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const copyAllSolutions = async () => {
+    const allText = `🔍 What went wrong:
+${results.whatWentWrong}
+
+✅ How to fix it:
+${results.howToFix.map((step, i) => `${i + 1}. ${step}`).join('\n')}
+
+💡 Prevention tips:
+${results.preventionTips.map(tip => `• ${tip}`).join('\n')}
+
+${results.tldr ? `\n📌 TL;DR: ${results.tldr}` : ''}
+
+---
+Analyzed by ItWorksLocally.tech 🚀`;
+    
+    await navigator.clipboard.writeText(allText);
+    setCopiedAll(true);
+    toast.success("All solutions copied!", {
+      description: "Share with your team or save for later",
+    });
+    setTimeout(() => setCopiedAll(false), 2000);
+  };
+
+  const shareOnTwitter = () => {
+    const text = encodeURIComponent(
+      `Just debugged my "works locally, fails in prod" issue with AI! 🔧\n\nTL;DR: ${results.tldr || results.whatWentWrong.slice(0, 100)}...\n\nCheck it out: itworkslocally.tech`
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
   };
 
   const cardVariants = {
@@ -46,27 +78,81 @@ const ResultsSection = ({ results, onPlayAudio, isPlaying }: ResultsSectionProps
       className="space-y-6 mt-12"
     >
       {/* Section Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-2xl font-bold gradient-text font-mono">Analysis Results</h2>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onPlayAudio}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-primary/20 transition-colors font-mono text-sm"
-        >
-          {isPlaying ? (
-            <>
-              <VolumeX className="w-4 h-4 text-primary" />
-              Stop
-            </>
-          ) : (
-            <>
-              <Volume2 className="w-4 h-4 text-primary" />
-              Listen to explanation
-            </>
-          )}
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={copyAllSolutions}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-primary/20 transition-colors font-mono text-xs"
+          >
+            {copiedAll ? (
+              <>
+                <Check className="w-4 h-4 text-success" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 text-muted-foreground" />
+                Copy All
+              </>
+            )}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={shareOnTwitter}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-primary/20 transition-colors font-mono text-xs"
+          >
+            <Share2 className="w-4 h-4 text-muted-foreground" />
+            Share
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onPlayAudio}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary hover:bg-primary/20 transition-colors font-mono text-sm"
+          >
+            {isPlaying ? (
+              <>
+                <VolumeX className="w-4 h-4 text-primary" />
+                Stop
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-4 h-4 text-primary" />
+                Listen
+              </>
+            )}
+          </motion.button>
+        </div>
       </div>
+
+      {/* TL;DR Card - Most shareable! */}
+      {results.tldr && (
+        <motion.div
+          custom={0}
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          className="result-card p-6 border-primary/30 bg-gradient-to-r from-primary/5 to-transparent"
+        >
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-lg bg-primary/20">
+              <MessageSquareQuote className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-mono font-bold text-lg mb-2 text-primary">
+                TL;DR
+              </h3>
+              <p className="text-foreground leading-relaxed text-lg italic">
+                "{results.tldr}"
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* What Went Wrong Card */}
       <motion.div
