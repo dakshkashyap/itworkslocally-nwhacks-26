@@ -1,9 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Terminal, Github } from "lucide-react";
-import { motion } from "framer-motion";
+import { Terminal, Github, Sun, Moon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "@/hooks/useTheme";
 
 const Header = () => {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = [
     { path: "/", label: "Home" },
@@ -44,8 +46,42 @@ const Header = () => {
                 {item.label}
               </Link>
             ))}
+            
+            {/* Theme Toggle */}
+            <motion.button
+              onClick={toggleTheme}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 rounded-lg bg-secondary hover:bg-primary/20 transition-colors relative overflow-hidden"
+              aria-label="Toggle theme"
+            >
+              <AnimatePresence mode="wait">
+                {theme === "dark" ? (
+                  <motion.div
+                    key="sun"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Sun className="w-4 h-4 text-yellow-500" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="moon"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Moon className="w-4 h-4 text-primary" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+            
             <a
-              href="https://github.com"
+              href="https://github.com/dakshkashyap/itworkslocally-nwhacks-26"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
