@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Code, Server, Laptop, Sparkles, Zap } from "lucide-react";
-import { useState } from "react";
+import { Code, Server, Laptop, Sparkles, Zap, Keyboard } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 interface DebugFormProps {
   onSubmit: (data: {
@@ -77,6 +77,20 @@ const DebugForm = ({ onSubmit, isLoading }: DebugFormProps) => {
   const [localEnv, setLocalEnv] = useState("");
   const [prodEnv, setProdEnv] = useState("");
   const [difficulty, setDifficulty] = useState("junior");
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Keyboard shortcut: Ctrl+Enter to submit
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && errorCode.trim() && !isLoading) {
+        e.preventDefault();
+        onSubmit({ errorCode, localEnv, prodEnv, difficulty });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [errorCode, localEnv, prodEnv, difficulty, isLoading, onSubmit]);
 
   const loadExample = (example: typeof demoExamples[0]) => {
     setErrorCode(example.errorCode);
@@ -208,25 +222,31 @@ RAM: 512MB
       </div>
 
       {/* Analyze Button */}
-      <motion.button
-        type="submit"
-        disabled={isLoading || !errorCode.trim()}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full py-4 rounded-xl btn-glow font-mono font-bold text-lg text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-      >
-        {isLoading ? (
-          <>
-            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-            Analyzing...
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-5 h-5" />
-            Analyze
-          </>
-        )}
-      </motion.button>
+      <div className="space-y-2">
+        <motion.button
+          type="submit"
+          disabled={isLoading || !errorCode.trim()}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full py-4 rounded-xl btn-glow font-mono font-bold text-lg text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+        >
+          {isLoading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              Analyzing...
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5" />
+              Analyze
+            </>
+          )}
+        </motion.button>
+        <p className="text-center text-xs text-muted-foreground font-mono flex items-center justify-center gap-1">
+          <Keyboard className="w-3 h-3" />
+          Pro tip: Press <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px]">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px]">Enter</kbd> to analyze
+        </p>
+      </div>
     </motion.form>
   );
 };
