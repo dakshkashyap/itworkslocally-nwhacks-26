@@ -17,7 +17,7 @@ export async function analyzeError(
   prodEnv: string,
   expertiseLevel: ExpertiseLevel
 ): Promise<AnalysisResult> {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const expertisePrompts: Record<ExpertiseLevel, string> = {
     junior:
@@ -59,15 +59,21 @@ Important:
 - Ensure valid JSON output`;
 
   try {
+    console.log("Calling Gemini API...");
     const result = await model.generateContent(prompt);
+    console.log("Got result from Gemini");
     const response = await result.response;
+    console.log("Got response object");
     const text = response.text();
+    console.log("Raw response text:", text);
 
     // Clean the response - remove markdown code blocks if present
     const cleanedText = text
       .replace(/```json?/gi, "")
       .replace(/```?/g, "")
       .trim();
+    
+    console.log("Cleaned text:", cleanedText);
 
     const parsed = JSON.parse(cleanedText);
 
@@ -86,8 +92,12 @@ Important:
     };
   } catch (error) {
     console.error("Gemini API Error:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
     throw new Error(
-      "Failed to analyze the error. Please check your API key and try again."
+      `Failed to analyze the error: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }
