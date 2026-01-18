@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Code, Server, Laptop, Sparkles } from "lucide-react";
 import { useState } from "react";
 
+console.log("DebugForm component rendered");
 interface DebugFormProps {
   onSubmit: (data: {
     errorCode: string;
@@ -24,8 +25,10 @@ const DebugForm = ({ onSubmit, isLoading }: DebugFormProps) => {
   const [prodEnv, setProdEnv] = useState("");
   const [difficulty, setDifficulty] = useState("junior");
 
-  const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
+    console.log("handleSubmit called"); // ADD THIS
     e.preventDefault();
+    console.log("Form data:", { errorCode, localEnv, prodEnv, difficulty }); // ADD THIS
     onSubmit({ errorCode, localEnv, prodEnv, difficulty });
   };
 
